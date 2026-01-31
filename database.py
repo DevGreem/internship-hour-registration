@@ -75,5 +75,18 @@ class Database:
         except:
             pass
 
+    def update_record(self, record_id, field, value):
+        """Actualizar un campo específico de un registro"""
+        if field in ['actividades', 'observaciones', 'fecha', 'tiempo']:
+            self.cursor.execute(f"UPDATE registros SET {field} = ? WHERE id = ?", (value, record_id))
+            self.conn.commit()
+            return True
+        return False
+
+    def get_record_by_id(self, record_id):
+        """Obtener un registro por su ID"""
+        self.cursor.execute("SELECT * FROM registros WHERE id = ?", (record_id,))
+        return self.cursor.fetchone()
+
     def close(self):
         self.conn.close()

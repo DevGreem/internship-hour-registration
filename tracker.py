@@ -15,8 +15,9 @@ def main():
         print("1. Agregar registro")
         print("2. Ver registros")
         print("3. Exportar a PDF")
-        print("4. Ver total de horas")
-        print("5. Salir")
+        print("4. Editar registro")
+        print("5. Ver total de horas")
+        print("6. Salir")
         
         choice = input("Seleccione una opción: ")
 
@@ -81,10 +82,95 @@ def main():
                 exporter.export(records)
 
         elif choice == '4':
+            records = db.get_all_records()
+            if not records:
+                print("No hay registros para editar.")
+            else:
+                print("\n--- Registros Guardados ---")
+                print(f"{'ID':<4} | {'Fecha':<12} | {'Tiempo':<6} | {'Actividades':<30} | {'Observaciones'}")
+                print("-" * 80)
+                for row in records:
+                    act_display = (row[2][:27] + '...') if len(row[2]) > 27 else row[2]
+                    obs_display = (row[4][:20] + '...') if len(row[4]) > 20 else row[4]
+                    print(f"{row[0]:<4} | {row[1]:<12} | {row[3]:<6} | {act_display:<30} | {obs_display}")
+                
+                try:
+                    record_id = int(input("\nIngrese el ID del registro a editar: "))
+                    record = db.get_record_by_id(record_id)
+                    
+                    if not record:
+                        print("Registro no encontrado.")
+                    else:
+                        print("\n¿Qué desea editar?")
+                        print("1. Actividad")
+                        print("2. Observación")
+                        print("3. Tiempo (horas)")
+                        edit_choice = input("Seleccione una opción: ")
+                        
+                        if edit_choice == '1':
+                            # Editar actividad
+                            activities_list = db.get_all_activities()
+                            print("\n--- Actividades existentes ---")
+                            for idx, act in enumerate(activities_list, 1):
+                                print(f"{idx}. {act}")
+                            print("0. Nueva actividad")
+                            print(f"\nActividad actual: {record[2]}")
+                            
+                            choice_act = input("\nSeleccione una actividad (número) o ingrese nueva descripción: ")
+                            
+                            if choice_act.isdigit():
+                                choice_num = int(choice_act)
+                                if 1 <= choice_num <= len(activities_list):
+                                    nueva_actividad = activities_list[choice_num - 1]
+                                elif choice_num == 0:
+                                    nueva_actividad = input("Nueva actividad: ")
+                                    db.add_activity(nueva_actividad)
+                                else:
+                                    nueva_actividad = choice_act
+                                    db.add_activity(nueva_actividad)
+                            else:
+                                nueva_actividad = choice_act
+                                db.add_activity(nueva_actividad)
+                            
+                            db.update_record(record_id, 'actividades', nueva_actividad)
+                            print("Actividad actualizada exitosamente.")
+                            
+                        elif edit_choice == '2':
+                            # Editar observación
+                            print(f"\nObservación actual: {record[4]}")
+                            nueva_obs = input("Nueva observación (Enter para mantener): ")
+                            if nueva_obs:
+                                db.update_record(record_id, 'observaciones', nueva_obs)
+                                print("Observación actualizada exitosamente.")
+                            else:
+                                print("No se realizaron cambios.")
+                                
+                        elif edit_choice == '3':
+                            # Editar tiempo
+                            print(f"\nTiempo actual: {record[3]} horas")
+                            while True:
+                                try:
+                                    nuevo_tiempo = input("Nuevo tiempo en horas (Enter para mantener): ")
+                                    if nuevo_tiempo:
+                                        nuevo_tiempo = float(nuevo_tiempo)
+                                        db.update_record(record_id, 'tiempo', nuevo_tiempo)
+                                        print("Tiempo actualizado exitosamente.")
+                                    else:
+                                        print("No se realizaron cambios.")
+                                    break
+                                except ValueError:
+                                    print("Por favor ingrese un número válido.")
+                        else:
+                            print("Opción no válida.")
+                            
+                except ValueError:
+                    print("ID no válido.")
+
+        elif choice == '5':
             total = db.get_total_hours()
             print(f"\nTotal de horas registradas: {total} horas")
 
-        elif choice == '5':
+        elif choice == '6':
             print("Saliendo...")
             db.close()
             break
