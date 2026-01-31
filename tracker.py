@@ -25,7 +25,32 @@ def main():
             if not fecha:
                 fecha = datetime.now().strftime("%d-%m-%Y")
             
-            actividades = input("Actividades realizadas: ")
+            # Mostrar actividades existentes
+            activities_list = db.get_all_activities()
+            if activities_list:
+                print("\n--- Actividades existentes ---")
+                for idx, act in enumerate(activities_list, 1):
+                    print(f"{idx}. {act}")
+                print("0. Nueva actividad")
+                
+                choice_act = input("\nSeleccione una actividad (número) o ingrese nueva descripción: ")
+                
+                if choice_act.isdigit():
+                    choice_num = int(choice_act)
+                    if 1 <= choice_num <= len(activities_list):
+                        actividades = activities_list[choice_num - 1]
+                    elif choice_num == 0:
+                        actividades = input("Actividades realizadas: ")
+                        db.add_activity(actividades)
+                    else:
+                        actividades = choice_act
+                        db.add_activity(actividades)
+                else:
+                    actividades = choice_act
+                    db.add_activity(actividades)
+            else:
+                actividades = input("Actividades realizadas: ")
+                db.add_activity(actividades)
             
             while True:
                 try:
